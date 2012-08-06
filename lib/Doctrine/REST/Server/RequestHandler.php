@@ -42,6 +42,7 @@ class RequestHandler
     private $_password;
     private $_credentialsCallback;
     private $_entities = array();
+    private $_serializerCallback;
 
     private $_actions = array(
         'delete' => 'Doctrine\\REST\\Server\\Action\\DeleteAction',
@@ -58,6 +59,7 @@ class RequestHandler
         $this->_response = $response;
         $this->_response->setRequestHandler($this);
         $this->_credentialsCallback = array($this, 'checkCredentials');
+        $this->_serializerCallback = array($this, '_transformResultForResponse');
     }
 
     public function configureEntity($entity, $configuration)
@@ -98,6 +100,11 @@ class RequestHandler
     public function setCredentialsCallback($callback)
     {
         $this->_credentialsCallback = $callback;
+    }
+
+    public function setSerializerCallback($callback)
+    {
+        $this->_serializerCallback = $callback;
     }
 
     public function registerAction($action, $className)
@@ -191,7 +198,7 @@ class RequestHandler
             }
 
             $this->_response->setResponseData(
-                $this->_transformResultForResponse($result)
+                $this->_serialize($result)
             );
         } catch (\Exception $e) {
             $this->_response->setError($this->_getExceptionErrorMessage($e));
@@ -226,6 +233,21 @@ class RequestHandler
         }
 
         return $message;
+    }
+
+    private function _serialize($result)
+    {
+        if ( ! is_array($result)) {
+            return call_user_func($this->_serializerCallback, $result);
+        } else {
+            $serialized = array();
+
+            foreach ($result as $object) {
+                $serialized[] = call_user_func($this->_serializerCallback, $object);
+            }
+
+            return $serialized;
+        }
     }
 
     private function _transformResultForResponse($result, $array = null)
