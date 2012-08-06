@@ -55,12 +55,6 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
         $this->_testActiveRecordApi();
     }
 
-    public function testDbal()
-    {
-        $this->setUpRest('dbal');
-        $this->_testActiveRecordApi();
-    }
-
     private function _testActiveRecordApi()
     {
         $user1 = new User();
@@ -137,7 +131,7 @@ class TestFunctionalClient extends Client
         if ($method === 'GET' && preg_match_all('/api\/' . $this->name . '\/([0-9]).xml/', $url, $matches)) {
             $id = $matches[1][0];
             return $this->execServer($request, array(
-                '_method' => $method, 
+                '_method' => $method,
                 '_format' => $responseType,
                 '_entity' => $this->name,
                 '_action' => 'get',
